@@ -1,130 +1,193 @@
-import { useState, useRef,useEffect } from 'react'
+import { useEffect, useState } from 'react'
+import { toast } from 'react-toastify'
+import { TodoUpdateDialog } from './components/TodoUpdateDialog'
+import TodoCard from './components/TodoCard';
+import { Button, TextField, Dialog, DialogActions, DialogContent,DialogContentText,DialogTitle,Box } from '@mui/material';
 
 
-
-function App() {
-  const [Todo, setTodo] = useState([])
-
-let todoTitle = useRef();
-let todoDescription = useRef();
-
-let modalref = useRef();
-
-// Events
-function handleSumbmit(e){
-  e.preventDefault()
- const next = [...Todo, {id: crypto.randomUUID(), title: todoTitle.current.value,description: todoDescription.current.value, isCompleted:false},]
- setTodo(next);
-// localStorage.setItem('todos', JSON.stringify(next)); //<--localstorage
-}
-
-// localstorage
-// useEffect(() => {
-//   const existingTodos = localStorage.getItem('todos');
-//   setTodo(existingTodos ? JSON.parse(existingTodos) : []);
-// }, []);
-
-
-
-
-function handleDeleteClick(id){
-  setTodo(currentTodos => {
-    return currentTodos.filter(todo => todo.id !== id)
+function App() { 
+  const [open, setOpen] = useState(false);
+  const [todos, setTodos] = useState(() => {
+    return JSON.parse(localStorage.getItem("Todos")) ?? []
   })
-}
-
-function handleToggleCompleted(id){
-  const todos = [...Todo]
-  todos.map(todo => {
-    if(todo.id === id){
-      todo.isCompleted = !todo.isCompleted
-    }
-    return todo
+  const [todo, setTodo] = useState({
+    id:null,
+    title:"",
+    description:""
   })
-  setTodo(todos)
-}
-  
+
+
+
+  const handleClickOpen = () => {
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+  };
+
  
-
-  function modal(e){
+  
+  useEffect(() => {
+    localStorage.setItem("Todos", JSON.stringify(todos))
+  }, [todos])
+  
+  const handleSumbmit = e =>{
     e.preventDefault()
-      const mod = modalref.current
-      
-     if(!mod.open){
-      mod.showModal()
-     }else if(mod.open){
-      mod.close()
-     }
-   }
+    if(todo.title.length === 0 || todo.description.length === 0){
+      toast.error('All fields are required!', {
+            position: "top-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "dark",
+          });
+    }else{
+      setTodos(currentTodo => {
+        return [
+          ...currentTodo,
+          {id: crypto.randomUUID(), title: todo.title,description: todo.description, isCompleted:false},
+        ]
+      })
+      toast.success('Todo has been added!', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+      setTodo({
+        id:null,
+        title:"",
+        description:""
+      })
+    }
+    handleClose() 
+  }
+ 
+  const handleUpdateClick = id => {
+    const tempTodos = [...todos]
+    todos.map(todoArray => {
+      if(todoArray.id === id){
+        todoArray.title = todo.title
+        todoArray.description = todo.description
+      }
+      return todo
+    })
+    setTodos(tempTodos)
+    setTodo({
+      id:null,
+      title:"",
+      description:""
+    })
+  }
+    
+  const handleDeleteClick = id => {
+    setTodos(currentTodos => {
+      return currentTodos.filter(todo => todo.id !== id)
+    })
+  }
 
-function ModalAdd(){
-   return(
-    <>
-    <dialog  className='border-2 px-5 rounded-md border-violet-500 ' ref={modalref}>
-        <form onSubmit={handleSumbmit} className='container border my-3 p-4 rounded-md shadow-md w-80 '>
-          <div className='flex gap-1 justify-center flex-col m-5'>
-            <input type="text" placeholder="Title"  ref={todoTitle}/>
-            <input type="text" placeholder="Description"  ref={todoDescription}  />
-          </div>
-          <div className='flex gap-1 justify-center m-5'>
-            <button className=' border-2 px-5 rounded-md border-red-500  hover:bg-red-300 ' onClick={modal} >Cancel</button>
-            <button className=' border-2 px-5 rounded-md border-green-300 hover:bg-green-300' type='submit' >Create</button>      
-          </div>
-        </form>
-      </dialog>
-    </>
-   )
 
+  const handleToggleCompleted = id => {
+    const tempTodos = [...todos]
+    todos.map(todo => {
+      if(todo.id === id){
+        todo.isCompleted = !todo.isCompleted
+      }
+      return todo
+    })
+    setTodos(tempTodos)
+  }
 
+  const handleEditClick = props => {
+    setTodo(props)
+  }
 
-}
-function Todolist(){
-  return(
-    <>
-    <h3 className='text-center mt-5 pb-10 text-cyan-400 font-bold' >Todo List</h3>
-    <div className='lg:grid lg:grid-cols-5 lg:place-items-center  flex gap-2 flex-wrap justify-center'>
-          {Todo.map(todo =>{
-            return(
-              <div key={todo.id} className='static container border my-3 p-4 rounded-md shadow-md w-80 sm:w-72'>
-                <div  className='text-center'>
-                  <div>
-                    {todo.title}
-                  </div>
-                  <div>
-                    {todo.description}
-                  </div>
-                </div>
-                <div className='flex gap-1 justify-center'>
-                  <button className=' border-2 px-5 rounded-md border-yellow-400'>Edit</button>
-                  <button className=' border-2 px-5 rounded-md border-red-500' onClick={() => handleDeleteClick(todo.id)}>Delete</button>
-                  <button className={todo.isCompleted ? ' border-2 px-5 rounded-md bg-green-500' : 'border border-2 px-5 rounded-md bg-red-500'} onClick={() => handleToggleCompleted(todo.id)}>{todo.isCompleted ? "Completed" : "Incomplete"}</button>
-                </div>
-              </div>
-            )
-            
-          })}
-    </div>
-    </>
-  )
-}
+  const handleDialogClose = () => {
+    setTodo({
+      id:null,
+      title:"",
+      description:""})
+  }
+  
 
 
   return (
     <>
+    
   
-  <div className='text-center'>
-    <button className='rounded-2xl p-2 bg-gradient-to-l from-blue-500 to-green-500 text-white' onClick={modal}>
-     Create 
-    </button>
-  </div>
-      <div>
-        <Todolist></Todolist>
-      </div>
 
-      <ModalAdd></ModalAdd>
+<div>
+      <Button variant="outlined" onClick={handleClickOpen}>
+        Create
+      </Button>
+      <Dialog open={open} onClose={handleClose}>
+      <DialogTitle>Create Todo</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+           Title
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="name"
+            label="what do you want to do"
+            type="text"
+            fullWidth
+            variant="standard"
+            value={todo.title} 
+            onChange={e => setTodo({...todo, title: e.target.value})}
+          />
+          
+          <DialogContentText>
+           Description
+          </DialogContentText>
+          <TextField
+            autoFocus
+            margin="dense"
+            id="name"
+            label="Describe what it is"
+            type="text"
+            fullWidth
+            variant="standard"
+            value={todo.description}
+            onChange={e => setTodo({...todo, description:e.target.value})}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleSumbmit}>Create</Button>
+        </DialogActions>
+      </Dialog>
+    </div>        
+
+    <TodoUpdateDialog 
+      todo={todo}
+      setTodo={setTodo}
+      handleDialogClose={handleDialogClose}
+      handleUpdateClick={handleUpdateClick}
+    />
       
+      <TodoCard
+              todos={todos}
+              handleEditClick={handleEditClick}
+              handleDeleteClick={handleDeleteClick}
+              handleToggleCompleted={handleToggleCompleted}
+            />
+
+
+  
+        
     </>
   )
 }
 
 export default App
+
