@@ -125,9 +125,11 @@ function App() {
   
 
 <div>
-      <Button variant="outlined" onClick={handleClickOpen}>
+      <div className='text-center'>
+        <Button variant="outlined" onClick={handleClickOpen}>
         Create
-      </Button>
+      </Button></div>
+      
       <Dialog open={open} onClose={handleClose}>
       <DialogTitle>Create Todo</DialogTitle>
         <DialogContent>
@@ -174,13 +176,19 @@ function App() {
       handleDialogClose={handleDialogClose}
       handleUpdateClick={handleUpdateClick}
     />
-      
-      <TodoCard
-              todos={todos}
+    <Box sx={{display:'flex', flexDirection: 'row',flexWrap: 'wrap', marginTop: 10,}}>
+      {todos.map(todo => 
+              <TodoCard
+              key={todo.id}
+              todo={todo}
               handleEditClick={handleEditClick}
               handleDeleteClick={handleDeleteClick}
               handleToggleCompleted={handleToggleCompleted}
             />
+        
+        
+        )}</Box>
+
 
 
   
