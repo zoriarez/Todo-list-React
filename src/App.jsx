@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState ,useRef} from 'react'
 import { toast } from 'react-toastify'
 import { TodoUpdateDialog } from './components/TodoUpdateDialog'
 import TodoCard from './components/TodoCard';
+import TodoCreateDialog from './components/TodoCreateDialog';
 import { Button, TextField, Dialog, DialogActions, DialogContent,DialogContentText,DialogTitle,Box } from '@mui/material';
 
 
@@ -16,7 +17,8 @@ function App() {
     description:""
   })
 
-
+  let todoTitle = useRef();
+  let todoDescription = useRef();
 
   const handleClickOpen = () => {
     setOpen(true);
@@ -46,10 +48,11 @@ function App() {
             theme: "dark",
           });
     }else{
+      
       setTodos(currentTodo => {
         return [
           ...currentTodo,
-          {id: crypto.randomUUID(), title: todo.title,description: todo.description, isCompleted:false},
+          {id: crypto.randomUUID(), title: todoTitle.current.value,description: todoDescription.current.value, isCompleted:false},
         ]
       })
       toast.success('Todo has been added!', {
@@ -68,6 +71,7 @@ function App() {
         description:""
       })
     }
+    console.log( todoTitle.current.value,todoDescription.current.value)
     handleClose() 
   }
  
@@ -122,53 +126,19 @@ function App() {
   return (
     <>
     
-  
+    <TodoCreateDialog 
+      open={open}
+      todo={todo}
+      todoTitle={todoTitle}
+      todoDescription={todoDescription}
+      handleClickOpen={handleClickOpen} 
+      handleClose={handleClose} 
+      setTodo={setTodo}
+      handleSumbmit={handleSumbmit}
+    
+    />
 
-<div>
-      <div className='text-center'>
-        <Button variant="outlined" onClick={handleClickOpen}>
-        Create
-      </Button></div>
-      
-      <Dialog open={open} onClose={handleClose}>
-      <DialogTitle>Create Todo</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-           Title
-          </DialogContentText>
-          <TextField
-            autoFocus
-            margin="dense"
-            id="name"
-            label="what do you want to do"
-            type="text"
-            fullWidth
-            variant="standard"
-            value={todo.title} 
-            onChange={e => setTodo({...todo, title: e.target.value})}
-          />
-          
-          <DialogContentText>
-           Description
-          </DialogContentText>
-          <TextField
-            autoFocus
-            margin="dense"
-            id="name"
-            label="Describe what it is"
-            type="text"
-            fullWidth
-            variant="standard"
-            value={todo.description}
-            onChange={e => setTodo({...todo, description:e.target.value})}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleSumbmit}>Create</Button>
-        </DialogActions>
-      </Dialog>
-    </div>        
+
 
     <TodoUpdateDialog 
       todo={todo}
